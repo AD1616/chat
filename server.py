@@ -1,4 +1,6 @@
 import socket
+import subprocess
+import helper
 
 # AF_INET defines the socket to be for internet communication
 # (as opposed to bluetooth or something)
@@ -6,7 +8,19 @@ import socket
 # connection oriented using TCP
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-server.bind(("10.8.142.30", 55882))
+ipv4_address = helper.get_non_loopback_ip()
+print("IP Address: ", ipv4_address)
+
+ports = helper.extract_port_numbers(ipv4_address)
+print("Trying the following available ports: ", ports)
+for port in ports:
+    try:
+        subprocess.run(["bash", "kill.sh", str(port)])
+        server.bind((ipv4_address, port))
+        print("Running server on port", port)
+        break
+    except Exception as e:
+        pass
 
 server.listen()
 
