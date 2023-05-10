@@ -1,1 +1,3 @@
 # chat
+
+netstat -a to find open port on router...
