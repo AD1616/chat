@@ -1,8 +1,12 @@
 import socket
+import helper
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-client.connect(("172.20.10.2", 9999))
+serverIP = str(input("Server: "))
+port = int(input("Port: "))
+
+client.connect((serverIP, port))
 
 done = False
 
