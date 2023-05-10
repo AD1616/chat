@@ -6,7 +6,7 @@ import socket
 # connection oriented using TCP
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-server.bind(("localhost", 9999))
+server.bind(("10.8.142.30", 9999))
 
 server.listen()
 
