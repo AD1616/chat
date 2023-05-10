@@ -2,7 +2,7 @@ import socket
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-client.connect(("10.8.142.30", 9999))
+client.connect(("172.20.10.2", 9999))
 
 done = False
 
