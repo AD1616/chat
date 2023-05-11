@@ -11,12 +11,22 @@ port=$1
 pids=$(lsof -t -i:"$port")
 
 echo $(lsof -i :$port | awk '{print $1}')
-
 # Check if any PIDs are founds
 if [ -z "$pids" ]; then
     exit 0
 fi
 
+echo "Kill process on port $port (y/n)?"
+
 # Terminate the processes using the found PIDs
-echo "Attempting to terminate processes running on port $port..."
-echo "$pids" | xargs -r kill
+#echo "Attempting to terminate processes running on port $port..."
+#echo "$pids" | xargs -r kill
+
+read answer
+
+# Check the user's response
+if [[ $answer =~ ^[Yy]$ ]]; then
+    echo "$pids" | xargs -r kill
+else
+    echo "Process termination aborted."
+fi
