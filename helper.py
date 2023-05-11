@@ -20,3 +20,11 @@ def extract_port_numbers(ip_address):
     output = subprocess.check_output(command, shell=True, universal_newlines=True)
     port_numbers = [int(port.split('.')[4]) for port in output.strip().split('\n')]
     return port_numbers
+
+
+def validate_port(port):
+    bad_ports = [63342]
+    if port not in bad_ports:
+        return True
+    return False
+

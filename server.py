@@ -15,10 +15,13 @@ ports = helper.extract_port_numbers(ipv4_address)
 print("Trying the following available ports: ", ports)
 for port in ports:
     try:
-        subprocess.run(["bash", "kill.sh", str(port)])
-        server.bind((ipv4_address, port))
-        print("Running server on port", port)
-        break
+        if helper.validate_port(port):
+            subprocess.run(["bash", "kill.sh", str(port)])
+            server.bind((ipv4_address, port))
+            print("Running server on port", port)
+            break
+        else:
+            pass
     except Exception as e:
         pass
 
