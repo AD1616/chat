@@ -8,11 +8,12 @@ fi
 port=$1
 
 # Find the process IDs (PIDs) associated with the specified port
-pids=$(lsof -t -i:$port)
+pids=$(lsof -t -i:"$port")
 
-# Check if any PIDs are found
+echo $(lsof -i :$port | awk '{print $1}')
+
+# Check if any PIDs are founds
 if [ -z "$pids" ]; then
-    echo "No processes found running on port $port."
     exit 0
 fi
 

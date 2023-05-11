@@ -18,7 +18,8 @@ for port in ports:
         if helper.validate_port(port):
             subprocess.run(["bash", "kill.sh", str(port)])
             server.bind((ipv4_address, port))
-            print("Running server on port", port)
+            print("Running server on port", port, "!")
+            print("IP: ", ipv4_address, "  Port: ", port)
             break
         else:
             pass
