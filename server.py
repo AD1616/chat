@@ -26,6 +26,7 @@ for port in ports:
     except Exception as e:
         pass
 
+
 server.listen()
 
 client, addr = server.accept()
