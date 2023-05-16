@@ -44,11 +44,12 @@ def submit():
 
     def send_message(event=None):
         data = input_message_to_send.get()
-        populate_text("[Me]" + data + "\n")
-        input_message_to_send.delete(0, tk.END)
-        client.send(data.encode('utf-8'))
-        input_message_to_send.pack_forget()
-        input_message_to_send.config(state="disabled")
+        if data != "":
+            populate_text("[Me]" + data + "\n")
+            input_message_to_send.delete(0, tk.END)
+            client.send(data.encode('utf-8'))
+            input_message_to_send.pack_forget()
+            input_message_to_send.config(state="disabled")
 
     input_message_to_send.bind("<Return>", send_message)
 
