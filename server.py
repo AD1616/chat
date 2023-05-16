@@ -13,6 +13,7 @@ print("IP Address: ", ipv4_address)
 
 ports = helper.extract_port_numbers(ipv4_address)
 print("Trying the following available ports: ", ports)
+bound = False
 for port in ports:
     try:
         if helper.validate_port(port):
@@ -20,26 +21,27 @@ for port in ports:
             server.bind((ipv4_address, port))
             print("Running server on port", port, "!")
             print("IP: ", ipv4_address, "  Port: ", port)
+            bound = True
             break
         else:
             pass
     except Exception as e:
         pass
 
+if bound:
+    server.listen()
 
-server.listen()
+    client, addr = server.accept()
 
-client, addr = server.accept()
+    done = False
 
-done = False
+    while not done:
+        msg = client.recv(1024).decode('utf-8')
+        if msg == 'quit':
+            done = True
+        else:
+            print("[Client]", msg)
+        client.send(input("[Me] ").encode('utf-8'))
 
-while not done:
-    msg = client.recv(1024).decode('utf-8')
-    if msg == 'quit':
-        done = True
-    else:
-        print("[Client]", msg)
-    client.send(input("[Me] ").encode('utf-8'))
-
-client.close()
-server.close()
+    client.close()
+    server.close()
