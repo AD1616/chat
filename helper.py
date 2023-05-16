@@ -27,3 +27,8 @@ def validate_port(port):
         return True
     return False
 
+
+def known_ports():
+    possible_allowed = [64667, 64692, 64691, 64690, 64689, 64688, 64685, 64675, 64674]
+    return possible_allowed
+
