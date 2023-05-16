@@ -9,7 +9,7 @@ closing = False
 
 
 def submit():
-    ip = helper.get_non_loopback_ip()
+    ip = str(ip_input.get())
     port = int(port_input.get())
     result_label.config(text="IP: " + ip + "\nPort: " + str(port))
 
@@ -66,6 +66,12 @@ def submit():
 # Create a Tkinter window
 root = tk.Tk()
 root.title("Chat Client")
+
+label_ip_input = tk.Label(root, text="IP:", justify="center", anchor="center")
+label_ip_input.pack()
+
+ip_input = tk.Entry(root, width=20, justify="center")
+ip_input.pack()
 
 label_port_input = tk.Label(root, text="Port:", justify="center", anchor="center")
 label_port_input.pack()
