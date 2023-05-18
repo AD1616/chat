@@ -1,16 +1,20 @@
 import subprocess
 import netifaces
-
+import socket
 
 def get_non_loopback_ip():
-    interfaces = netifaces.interfaces()
-    for interface in interfaces:
-        addresses = netifaces.ifaddresses(interface)
-        if netifaces.AF_INET in addresses:
-            for address in addresses[netifaces.AF_INET]:
-                ip = address['addr']
-                if not ip.startswith('127.'):
-                    return ip
+    # interfaces = netifaces.interfaces()
+    # for interface in interfaces:
+    #     addresses = netifaces.ifaddresses(interface)
+    #     if netifaces.AF_INET in addresses:
+    #         for address in addresses[netifaces.AF_INET]:
+    #             ip = address['addr']
+    #             if not ip.startswith('127.'):
+    #                 print(ip)
+    hostname = socket.gethostname()
+    ip = socket.gethostbyname(hostname)
+    if not ip.startswith('127.'):
+        return ip
     return None
 
 
@@ -31,4 +35,3 @@ def validate_port(port):
 def known_ports():
     possible_allowed = [64667, 64692, 64691, 64690, 64689, 64688, 64685, 64675, 64674]
     return possible_allowed
-
