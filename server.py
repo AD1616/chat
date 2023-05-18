@@ -13,7 +13,6 @@ ipv4_address = helper.get_non_loopback_ip()
 print("IP Address: ", ipv4_address)
 
 ports = helper.known_ports()
-last_resort_ports = helper.extract_port_numbers(ipv4_address)
 print("Attempting commonly open ports... ")
 bound = False
 
@@ -57,6 +56,7 @@ for port in ports:
 
 if not bound:
     print("Failed. Analyzing processes... ")
+    last_resort_ports = helper.extract_port_numbers(ipv4_address)
     for port in last_resort_ports:
         try:
             if helper.validate_port(port):
