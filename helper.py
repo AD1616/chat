@@ -3,19 +3,16 @@ import netifaces
 import socket
 
 def get_non_loopback_ip():
-    # interfaces = netifaces.interfaces()
-    # for interface in interfaces:
-    #     addresses = netifaces.ifaddresses(interface)
-    #     if netifaces.AF_INET in addresses:
-    #         for address in addresses[netifaces.AF_INET]:
-    #             ip = address['addr']
-    #             if not ip.startswith('127.'):
-    #                 print(ip)
-    hostname = socket.gethostname()
-    ip = socket.gethostbyname(hostname)
-    if not ip.startswith('127.'):
-        return ip
-    return None
+    interfaces = netifaces.interfaces()
+    for interface in interfaces:
+        if interface == 'lo' or interface.startswith('vbox'):
+            continue
+        addresses = netifaces.ifaddresses(interface)
+        if netifaces.AF_INET in addresses:
+            for address in addresses[netifaces.AF_INET]:
+                ip = address['addr']
+                if not ip.startswith('127.'):
+                    return ip
 
 
 def extract_port_numbers(ip_address):
