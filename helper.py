@@ -5,13 +5,14 @@ import netifaces
 def get_non_loopback_ip():
     interfaces = netifaces.interfaces()
     for interface in interfaces:
+        if interface == 'lo' or interface.startswith('vbox'):
+            continue
         addresses = netifaces.ifaddresses(interface)
         if netifaces.AF_INET in addresses:
             for address in addresses[netifaces.AF_INET]:
                 ip = address['addr']
                 if not ip.startswith('127.'):
                     return ip
-    return None
 
 
 def extract_port_numbers(ip_address):
@@ -31,4 +32,3 @@ def validate_port(port):
 def known_ports():
     possible_allowed = [64667, 64692, 64691, 64690, 64689, 64688, 64685, 64675, 64674]
     return possible_allowed
-
