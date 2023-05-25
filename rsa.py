@@ -2,6 +2,12 @@ import random
 
 # helper functions
 
+def gcd(a, b):
+  if (b==0):
+    return a
+  r = gcd(b,a%b)
+  return r
+
 def extended_gcd(a, b): 
   if (b==0):
     x = 1
@@ -29,8 +35,8 @@ def generate(p, q):
   # pick e rel prime to phi, calculate inverse d
   while True:
     e = random.randrange(3, phi)
-    gcd, d, _ = extended_gcd(e, phi)
-    if gcd == 1 and e != d:
+    if gcd(e, phi) == 1:
+      d = modular_inverse(e, phi)
       break
 
   return (e, N), (d, N) # public, private pairs
@@ -48,9 +54,10 @@ def decrypt(m, privkey):
   
 if __name__ == "__main__":
   pubkey, privkey = generate(11,17)
+  print(pubkey, privkey)
   msg = input("Message: ")
   ciphertxt = encrypt(msg, pubkey)
   print(ciphertxt)
-  plaintxt = decrypt(msg, privkey)
+  plaintxt = decrypt(ciphertxt, privkey)
   print(plaintxt)
   
