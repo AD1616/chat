@@ -33,8 +33,24 @@ def generate(p, q):
     if gcd == 1 and e != d:
       break
 
-  return (N,e), (N,d) # public, private pairs
+  return (e, N), (d, N) # public, private pairs
+
+def encrypt(msg, pubkey):
+  e, N = pubkey
+  m = [pow(ord(c), e, N) for c in msg] # convert to ascii and encrypt each char
+  return m
+
+def decrypt(m, privkey):
+  d, N = privkey
+  msg = [chr(pow(c, d, N)) for c in m]
+  return ''.join(msg)
  
   
 if __name__ == "__main__":
-  print(generate(11,17))
+  pubkey, privkey = generate(11,17)
+  msg = input("Message: ")
+  ciphertxt = encrypt(msg, pubkey)
+  print(ciphertxt)
+  plaintxt = decrypt(msg, privkey)
+  print(plaintxt)
+  
