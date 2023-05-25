@@ -2,6 +2,7 @@ import socket
 import subprocess
 import helper
 import os
+import rsa
 
 # AF_INET defines the socket to be for internet communication
 # (as opposed to bluetooth or something)
@@ -21,6 +22,15 @@ def client_server_flow():
     server.listen()
 
     client, addr = server.accept()
+    
+    # receive public key from client
+    client_pubkey = client.recv(1024).decode('utf-8')
+    print("Client public key: ", client_pubkey)
+    
+    # send public key to client
+    pubkey, privkey = rsa.generate(10)
+    client.send(str(pubkey).encode('utf-8'))
+    print("Public key sent to client")
 
     done = False
 
@@ -49,8 +59,6 @@ for port in ports:
             kill_and_bind(port)
             bound = True
             break
-        else:
-            pass
     except Exception as e:
         pass
 
@@ -64,11 +72,7 @@ if not bound:
                 bound = True
                 client_server_flow()
                 break
-            else:
-                pass
         except Exception as e:
             pass
 else:
     client_server_flow()
-
-

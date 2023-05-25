@@ -2,6 +2,7 @@ import tkinter as tk
 import socket
 import threading
 import helper
+import rsa
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -31,6 +32,21 @@ def submit():
     input_message_to_send = tk.Entry(root, width=35)
     input_message_to_send.pack()
 
+    def populate_text(data):
+        text_box.config(state="normal")
+        text_box.insert(tk.END, data)
+        text_box.see(tk.END)
+        text_box.config(state="disabled")
+    
+    # send public key to server
+    pubkey, privkey = rsa.generate(10)
+    client.send(str(pubkey).encode('utf-8'))
+    populate_text("Public key sent to server\n")
+    
+    # receive public key from server
+    server_pubkey = client.recv(1024).decode('utf-8')
+    populate_text("Server public key: " + server_pubkey + "\n")
+
     def receive_message():
         while not closing:
             incoming_message = client.recv(1024).decode('utf-8')
@@ -55,13 +71,6 @@ def submit():
 
     receive_thread = threading.Thread(target=receive_message)
     receive_thread.start()
-
-    def populate_text(data):
-        text_box.config(state="normal")
-        text_box.insert(tk.END, data)
-        text_box.see(tk.END)
-        text_box.config(state="disabled")
-
 
 # Create a Tkinter window
 root = tk.Tk()
