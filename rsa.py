@@ -1,4 +1,6 @@
-# pick 2 large primes p and q
+import random
+
+# helper functions
 
 def extended_gcd(a, b): 
   if (b==0):
@@ -18,12 +20,21 @@ def modular_inverse(a, m): # ax=1(mod m) -> same as ax-my=1
     return -1
   return x+m if x<0 else x
 
-# generate keypair, return public and private key
+# rsa
+
 def generate(p, q):
   N = p*q;
   phi = (p-1)*(q-1)
   
-  print(modular_inverse(3, 4))
+  # pick e rel prime to phi, calculate inverse d
+  while True:
+    e = random.randrange(3, phi)
+    gcd, d, _ = extended_gcd(e, phi)
+    if gcd == 1 and e != d:
+      break
 
+  return (N,e), (N,d) # public, private pairs
+ 
+  
 if __name__ == "__main__":
-  generate(11,17)
+  print(generate(11,17))
