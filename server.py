@@ -24,13 +24,24 @@ def client_server_flow():
     client, addr = server.accept()
     
     # receive public key from client
-    client_pubkey = client.recv(1024).decode('utf-8')
+    client_pubkey = eval(client.recv(1024).decode('utf-8')) # back to tuple
     print("Client public key: ", client_pubkey)
     
     # send public key to client
     pubkey, privkey = rsa.generate(10)
     client.send(str(pubkey).encode('utf-8'))
     print("Public key sent to client")
+
+    # test encryption
+    test_msg = "asflsdjfls"
+    client.send(str(rsa.encrypt(test_msg, client_pubkey)).encode('utf-8'))
+    print("Encrypted message sent to client")
+    # verify client reply is correct
+    if rsa.decrypt(client.recv(1024), privkey).decode('utf-8') == test_msg:
+        print("Test successful")
+    else:
+        print("Test failed")
+        return
 
     done = False
 

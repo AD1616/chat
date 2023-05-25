@@ -58,6 +58,7 @@ def generate(n): # bit size
 
   return (e, N), (d, N) # public, private pairs
 
+# TODO: make it by blocks < N not character
 def encrypt(msg, pubkey):
   e, N = pubkey
   m = [pow(ord(c), e, N) for c in msg] # convert to ascii and encrypt each char
