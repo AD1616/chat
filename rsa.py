@@ -26,10 +26,27 @@ def modular_inverse(a, m): # ax=1(mod m) -> same as ax-my=1
     return -1
   return x+m if x<0 else x
 
+def fermat_primality(n, k): # n=candidate, k=# of trials
+  for i in range(k):
+    a = random.randrange(2, n-1)
+    if pow(a, n-1, n) != 1:
+      return False
+  return True
+
 # rsa
 
-def generate(p, q):
-  N = p*q;
+def generate(n): # bit size
+
+  while True:
+    p = random.randrange(2**(n-1)+1, 2**n)
+    if fermat_primality(p, 20):
+      break
+  while True:
+    q = random.randrange(2**(n-1)+1, 2**n)
+    if fermat_primality(q, 20):
+      break
+      
+  N = p*q
   phi = (p-1)*(q-1)
   
   # pick e rel prime to phi, calculate inverse d
@@ -53,7 +70,7 @@ def decrypt(m, privkey):
  
   
 if __name__ == "__main__":
-  pubkey, privkey = generate(11,17)
+  pubkey, privkey = generate(10)
   print(pubkey, privkey)
   msg = input("Message: ")
   ciphertxt = encrypt(msg, pubkey)
