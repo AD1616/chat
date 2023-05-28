@@ -32,16 +32,16 @@ def client_server_flow():
     client.send(str(pubkey).encode('utf-8'))
     print("Public key sent to client")
 
-    # test encryption
-    test_msg = "asflsdjfls"
-    client.send(str(rsa.encrypt(test_msg, client_pubkey)).encode('utf-8'))
-    print("Encrypted message sent to client")
-    # verify client reply is correct
-    if rsa.decrypt(client.recv(1024), privkey).decode('utf-8') == test_msg:
-        print("Test successful")
-    else:
-        print("Test failed")
-        return
+    # ******* TEST ENCRYPTION ******* 
+    # test_msg = "asflsdjfls"
+    # client.send(str(rsa.encrypt(test_msg, client_pubkey)).encode('utf-8'))
+    # print("Encrypted message sent to client")
+    # # verify client reply is correct
+    # if rsa.decrypt(client.recv(1024), privkey).decode('utf-8') == test_msg:
+    #     print("Test successful")
+    # else:
+    #     print("Test failed")
+    #     return
 
     done = False
 

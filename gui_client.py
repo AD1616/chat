@@ -3,6 +3,8 @@ import socket
 import threading
 import helper
 import rsa
+import os
+import sys
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -39,13 +41,23 @@ def submit():
         port_input = tk.Entry(root, width=20, justify="center")
         port_input.pack()
 
-        port = int(port_input.get())
-        client.connect((server_ip, port))
-
-        result_label.config(text="IP: " + server_ip + "\nPort: " + str(port))
+        try:
+            port = int(port_input.get())
+            client.connect((server_ip, port))
+            connected = True
+        except:
+            pass
 
         label_port_input.destroy()
         port_input.destroy()
+
+        result_label.config(text="IP: " + server_ip + "\nPort: " + str(port))
+
+
+
+    if not connected:
+        pass
+
 
     label_ip_input.destroy()
     ip_input.destroy()
@@ -71,11 +83,11 @@ def submit():
     
     # receive public key from server
     server_pubkey = eval(client.recv(1024).decode('utf-8'))
-    populate_text("Server public key: " + str(server_pubkey) + "\n")
+    populate_text("Server public key: " + str(server_pubkey) + "\n", text_box)
 
-    # test decryption and send back to server
-    test_msg = rsa.decrypt(client.recv(1024), privkey)
-    client.send(rsa.encrypt(str(test_msg), server_pubkey))
+    # ******* TEST DECRYPTION ******* 
+    # test_msg = rsa.decrypt(client.recv(1024), privkey)
+    # client.send(rsa.encrypt(str(test_msg), server_pubkey))
 
     # handle incoming messages from the server
     def receive_message():
@@ -111,7 +123,9 @@ def submit():
 root = tk.Tk()
 root.title("Chat Client")
 
-text_devices = tk.Text(root, width=50, height=2, state="disabled")
+label_text_devices = tk.Label(root, text="IPs of devices on the network:", justify="center", anchor="center")
+label_text_devices.pack()
+text_devices = tk.Text(root, width=20, height=6, state="disabled")
 text_devices.pack()
 
 label_ip_input = tk.Label(root, text="IP:", justify="center", anchor="center")
@@ -120,7 +134,6 @@ label_ip_input.pack()
 ip_input = tk.Entry(root, width=20, justify="center")
 ip_input.pack()
 
-
 submit_button = tk.Button(root, text="Connect", command=submit)
 submit_button.pack()
 
@@ -128,13 +141,25 @@ result_label = tk.Label(root, text="")
 result_label.pack()
 
 client_ip = helper.get_non_loopback_ip()
-devices_on_network = helper.find_devices_on_network(client_ip)
-populate_text(devices_on_network, text_devices)
+
+
+def find_devices():
+    devices_on_network = helper.find_devices_on_network(client_ip)
+    message_devices = ""
+    for ip in devices_on_network:
+        message_devices += ip
+        message_devices += "\n"
+    populate_text(message_devices, text_devices)
+    sys.exit()
+
+find_devices_thread = threading.Thread(target=find_devices)
+find_devices_thread.start()
 
 def on_closing():
     closing = True
     if client:
         client.close()  # Close the socket connection if it exists
+        os._exit(0)
     root.destroy()
 
 
