@@ -1,18 +1,9 @@
 import subprocess
 import netifaces
 import socket
+import re
 
 def get_non_loopback_ip():
-    # interfaces = netifaces.interfaces()
-    # for interface in interfaces:
-    #     if interface == 'lo' or interface.startswith('vbox'):
-    #         continue
-    #     addresses = netifaces.ifaddresses(interface)
-    #     if netifaces.AF_INET in addresses:
-    #         for address in addresses[netifaces.AF_INET]:
-    #             ip = address['addr']
-    #             if not ip.startswith('127.'):
-    #                 return ip
     interface = netifaces.gateways()['default'][netifaces.AF_INET][1] # get name of the "default" gateway interface (e.g. (ip addr, interface name)))
     ip = netifaces.ifaddresses(interface)[netifaces.AF_INET][0]['addr'] # get ip address associated with interface
     return ip
@@ -35,3 +26,10 @@ def validate_port(port):
 def known_ports():
     possible_allowed = [64667, 64692, 64691, 64690, 64689, 64688, 64685, 64675, 64674]
     return possible_allowed
+
+def find_devices_on_network(ip_address):
+    command = f"arp -a | grep {ip_address.split('.')[0]}"
+    output = subprocess.check_output(command, shell=True, universal_newlines=True)
+    device_ip_list = [re.findall(r'\((.*?)\)', ip)[0] for ip in output.strip().split('\n')]
+    return device_ip_list
+    
