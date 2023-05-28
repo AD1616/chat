@@ -18,9 +18,13 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_broadcast_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server_broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
+# set a fixed port for both client and server
+# to communicate the server's IP and port
 broadcast_port = 64667
+
 bound_port = 0
 
+# global variable to indicate when the connection is complete
 done = False
 
 ipv4_address = helper.get_non_loopback_ip()
@@ -30,7 +34,7 @@ ports = helper.known_ports()
 print("Attempting commonly open ports... ")
 bound = False
 
-
+# controls communication between client and server
 def client_server_flow():
     global done
     server.listen()
@@ -57,7 +61,7 @@ def client_server_flow():
     #     print("Test failed")
     #     return
 
-
+    # receive and send messages
     while not done:
         msg = client.recv(1024).decode('utf-8')
         if msg == 'quit' or msg == '':
@@ -79,7 +83,9 @@ def broadcast_for_new_clients(ip, port):
         time.sleep(5)
     sys.exit()
 
-
+# Kill any processes that are using the port we want to use
+# and bind the server to the port
+# additionally, begin the broadcast thread once port is established
 def kill_and_bind(port_to_attempt):
     subprocess.run(["bash", "kill.sh", str(port_to_attempt)])
     server.bind((ipv4_address, port_to_attempt))
@@ -90,7 +96,7 @@ def kill_and_bind(port_to_attempt):
     print("Running server on port", port_to_attempt, "!")
     print("IP: ", ipv4_address, "  Port: ", port_to_attempt)
 
-
+# try to bind to any of the ports we know are generally free
 for port in ports:
     try:
         if helper.validate_port(port):
@@ -100,6 +106,9 @@ for port in ports:
     except Exception as e:
         pass
 
+# if not, do something a bit more malicious and 
+# try to bind to any port that is in use but can be killed
+# at user discretion
 if not bound:
     print("Failed. Analyzing processes... ")
     last_resort_ports = helper.extract_port_numbers(ipv4_address)

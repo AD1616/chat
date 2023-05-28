@@ -38,7 +38,6 @@ def submit(event=None):
         client.connect((server_ip_address, server_port))
     # otherwise, setup UI to allow user to enter IP and port
     except:
-
         label_ip_input = tk.Label(root, text="IP:", justify="center", anchor="center")
         label_ip_input.pack()
 
