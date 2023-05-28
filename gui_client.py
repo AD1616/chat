@@ -20,7 +20,7 @@ def populate_text(data, text):
     text.config(state="disabled")
 
 
-def submit():
+def submit(event=None):
     server_ip = str(ip_input.get())
 
     ports = helper.known_ports()
@@ -53,11 +53,8 @@ def submit():
 
         result_label.config(text="IP: " + server_ip + "\nPort: " + str(port))
 
-
-
     if not connected:
         pass
-
 
     label_ip_input.destroy()
     ip_input.destroy()
@@ -105,12 +102,15 @@ def submit():
             else:
                 populate_text("[Server]" + incoming_message + "\n", text_box)
 
+    # handle sending messages to the server
     def send_message(event=None):
         data = input_message_to_send.get()
         if data != "":
             populate_text("[Me]" + data + "\n", text_box)
             input_message_to_send.delete(0, tk.END)
             client.send(data.encode('utf-8'))
+            # disable input box while waiting for
+            # reply from server
             input_message_to_send.pack_forget()
             input_message_to_send.config(state="disabled")
 
@@ -136,6 +136,8 @@ ip_input.pack()
 
 submit_button = tk.Button(root, text="Connect", command=submit)
 submit_button.pack()
+
+ip_input.bind("<Return>", submit)
 
 result_label = tk.Label(root, text="")
 result_label.pack()
