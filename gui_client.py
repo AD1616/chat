@@ -13,12 +13,12 @@ client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_receive_broadcast_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 client_receive_broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 broadcast_port = 64667
-client_receive_broadcast_socket.bind(("", broadcast_port))
-data, address = client_receive_broadcast_socket.recvfrom(1024)
-message = data.decode()
-server_ip_address = message.split(",")[0].split(":")[1].strip()
-server_port = int(message.split(",")[1].split(":")[1].strip())
 
+server_ip_address = "0.0.0.0"
+server_port = 0
+
+server_ips = []
+server_ports = []
 
 closing = False
 
@@ -30,48 +30,54 @@ def populate_text(data, text):
     text.see(tk.END)
     text.config(state="disabled")
 
+# Display IP and port that server broadcasted
+def display_received_broadcast():
+    global server_ip_address
+    global server_port
+    client_receive_broadcast_socket.bind(("", broadcast_port))
+    while True:
+        data, address = client_receive_broadcast_socket.recvfrom(1024)
+        message = data.decode()
+        server_ip_address = message.split(",")[0].split(":")[1].strip()
+        server_port = int(message.split(",")[1].split(":")[1].strip())
+        flag = False
+        for i in range(len(server_ips)):
+            if server_ip_address == server_ips[i] and server_port == server_ports[i]:
+                flag = True
+        if not flag:
+            populate_text("IP: " + str(server_ip_address) + "  Port: " + str(server_port) + "\n", text_devices)
+            server_ips.append(server_ip_address)
+            server_ports.append(server_port)
+
+
+# threading to improve startup time
+display_received_broadcast_thread = threading.Thread(target=display_received_broadcast)
+display_received_broadcast_thread.start()
+
 
 # flow after connection is established
 def submit(event=None):
-    # try to connect to broadcasted IP and port
+    server_ip = str(ip_input.get())
+    port = int(port_input.get())
+
+    connected = False
+
     try:
-        client.connect((server_ip_address, server_port))
-    # otherwise, setup UI to allow user to enter IP and port
+        client.connect((server_ip, port))
+        connected = True
     except:
-        label_ip_input = tk.Label(root, text="IP:", justify="center", anchor="center")
-        label_ip_input.pack()
+        pass
 
-        ip_input = tk.Entry(root, width=20, justify="center")
-        ip_input.pack()
+    label_port_input.destroy()
+    port_input.destroy()
 
-        label_port_input = tk.Label(root, text="Port:", justify="center", anchor="center")
-        label_port_input.pack()
+    result_label.config(text="IP: " + server_ip + "\nPort: " + str(port))
 
-        port_input = tk.Entry(root, width=20, justify="center")
-        port_input.pack()
+    if not connected:
+        pass
 
-        server_ip = str(ip_input.get())
-        port = int(port_input.get())
-
-        connected = False
-
-        try:
-            port = int(port_input.get())
-            client.connect((server_ip, port))
-            connected = True
-        except:
-            pass
-
-        label_port_input.destroy()
-        port_input.destroy()
-
-        result_label.config(text="IP: " + server_ip + "\nPort: " + str(port))
-
-        if not connected:
-            pass
-
-        label_ip_input.destroy()
-        ip_input.destroy()
+    label_ip_input.destroy()
+    ip_input.destroy()
 
     text_devices.destroy()  
     submit_button.destroy()
@@ -145,6 +151,18 @@ label_text_devices.pack()
 text_devices = tk.Text(root, width=30, height=6, state="disabled")
 text_devices.pack()
 
+label_ip_input = tk.Label(root, text="IP:", justify="center", anchor="center")
+label_ip_input.pack()
+
+ip_input = tk.Entry(root, width=20, justify="center")
+ip_input.pack()
+
+label_port_input = tk.Label(root, text="Port:", justify="center", anchor="center")
+label_port_input.pack()
+
+port_input = tk.Entry(root, width=20, justify="center")
+port_input.pack()
+
 
 
 submit_button = tk.Button(root, text="Connect", command=submit)
@@ -171,14 +189,8 @@ def find_devices():
 # find_devices_thread = threading.Thread(target=find_devices)
 # find_devices_thread.start()
 
-# Display IP and port that server broadcasted
-def display_received_broadcast():
-    populate_text("IP: " + str(server_ip_address) + "  Port: " + str(server_port), text_devices )
-    sys.exit()
 
-# threading to improve startup time
-display_received_broadcast_thread = threading.Thread(target=display_received_broadcast)
-display_received_broadcast_thread.start()
+
 
 # handle closing of the window
 def on_closing():
