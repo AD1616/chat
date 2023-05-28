@@ -79,9 +79,10 @@ def submit(event=None):
     label_ip_input.destroy()
     ip_input.destroy()
 
+    label_text_devices.destroy()
+
     text_devices.destroy()  
     submit_button.destroy()
-
 
     text_box = tk.Text(root, width=50, height=10, state="disabled", highlightcolor="red", highlightthickness=2)
     text_box.pack()
