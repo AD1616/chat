@@ -25,20 +25,8 @@ python server.py
 ```
 The program needs to find an established port to mount the server on. You will be asked to terminate a process to allow this.
 
-### Start Client
-
-#### Command Line
-
-```shell
-python client.py
-```
-
-Enter the IP/Port that the server is running on. 
-
-#### GUI
+### Start GUI Client
 
 ```shell
 python gui_client.py
 ```
-
-Enter the port that the server is running on.
