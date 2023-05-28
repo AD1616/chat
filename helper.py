@@ -3,6 +3,7 @@ import netifaces
 import socket
 import re
 
+
 def get_non_loopback_ip():
     interface = netifaces.gateways()['default'][netifaces.AF_INET][1] # get name of the "default" gateway interface (e.g. (ip addr, interface name)))
     ip = netifaces.ifaddresses(interface)[netifaces.AF_INET][0]['addr'] # get ip address associated with interface
@@ -26,6 +27,7 @@ def validate_port(port):
 def known_ports():
     possible_allowed = [64692, 64691, 64690, 64689, 64688, 64685, 64675, 64674]
     return possible_allowed
+
 
 def find_devices_on_network(ip_address):
     command = f"arp -a | grep {ip_address.split('.')[0]}"
