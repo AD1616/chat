@@ -6,9 +6,10 @@ import rsa
 import os
 import sys
 
+# TCP client to receive and send messages to server
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-# We use a UDP socket to receive the IP and port of the server
+# UDP socket to receive the IP and port of the server from broadcast
 client_receive_broadcast_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 client_receive_broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 broadcast_port = 64667
@@ -30,9 +31,12 @@ def populate_text(data, text):
     text.config(state="disabled")
 
 
+# flow after connection is established
 def submit(event=None):
+    # try to connect to broadcasted IP and port
     try:
         client.connect((server_ip_address, server_port))
+    # otherwise, setup UI to allow user to enter IP and port
     except:
 
         label_ip_input = tk.Label(root, text="IP:", justify="center", anchor="center")
@@ -72,6 +76,7 @@ def submit(event=None):
 
     text_devices.destroy()  
     submit_button.destroy()
+
 
     text_box = tk.Text(root, width=50, height=10, state="disabled", highlightcolor="red", highlightthickness=2)
     text_box.pack()
@@ -128,6 +133,7 @@ def submit(event=None):
 
     input_message_to_send.bind("<Return>", send_message)
 
+    # start thread to receive messages
     receive_thread = threading.Thread(target=receive_message)
     receive_thread.start()
 
@@ -152,6 +158,7 @@ result_label.pack()
 client_ip = helper.get_non_loopback_ip()
 
 
+# Find all IP addresses on the network
 def find_devices():
     devices_on_network = helper.find_devices_on_network(client_ip)
     message_devices = ""
@@ -170,9 +177,11 @@ def display_received_broadcast():
     populate_text("IP: " + str(server_ip_address) + "  Port: " + str(server_port), text_devices )
     sys.exit()
 
+# threading to improve startup time
 display_received_broadcast_thread = threading.Thread(target=display_received_broadcast)
 display_received_broadcast_thread.start()
 
+# handle closing of the window
 def on_closing():
     closing = True
     if client:
