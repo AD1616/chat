@@ -5,6 +5,7 @@ import helper
 import os
 import rsa
 import threading
+import sys
 
 # AF_INET defines the socket to be for internet communication
 # (as opposed to bluetooth or something)
@@ -31,6 +32,7 @@ bound = False
 
 
 def client_server_flow():
+    global done
     server.listen()
 
     client, addr = server.accept()
@@ -60,6 +62,7 @@ def client_server_flow():
         msg = client.recv(1024).decode('utf-8')
         if msg == 'quit' or msg == '':
             done = True
+            sys.exit()
         else:
             print("[Client]", msg)
         client.send(input("[Me] ").encode('utf-8'))
@@ -67,20 +70,21 @@ def client_server_flow():
     client.close()
     server.close()
 
+# Broadcast the IP and port of the server
+def broadcast_for_new_clients(ip, port):
+    global done
+    while not done:
+        message = f"Server IP address: {ip}, Port: {port}"
+        server_broadcast_socket.sendto(message.encode(), ("<broadcast>", broadcast_port))
+        time.sleep(5)
+    sys.exit()
+
 
 def kill_and_bind(port_to_attempt):
     subprocess.run(["bash", "kill.sh", str(port_to_attempt)])
     server.bind((ipv4_address, port_to_attempt))
     bound_port = port_to_attempt
-
-    # Broadcast the IP and port of the server
-    def broadcast_for_new_clients():
-        while not done:
-            message = f"Server IP address: {ipv4_address}, Port: {bound_port}"
-            server_broadcast_socket.sendto(message.encode(), ("<broadcast>", broadcast_port))
-            time.sleep(5)
-
-    broadcast_thread = threading.Thread(target=broadcast_for_new_clients)
+    broadcast_thread = threading.Thread(target=broadcast_for_new_clients, args=(ipv4_address, bound_port))
     broadcast_thread.start()
 
     print("Running server on port", port_to_attempt, "!")
