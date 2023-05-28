@@ -1,14 +1,26 @@
 import socket
 import subprocess
+import time
 import helper
 import os
 import rsa
+import threading
 
 # AF_INET defines the socket to be for internet communication
 # (as opposed to bluetooth or something)
 # SOCK_STREAM means it is a stream based socket;
 # connection oriented using TCP
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+# We use a UDP socket to broadcast the IP and port of the server
+# The client is set up to listen to the server's broadcast on a specific port
+server_broadcast_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+server_broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+
+broadcast_port = 64667
+bound_port = 0
+
+done = False
 
 ipv4_address = helper.get_non_loopback_ip()
 print("IP Address: ", ipv4_address)
@@ -43,7 +55,6 @@ def client_server_flow():
     #     print("Test failed")
     #     return
 
-    done = False
 
     while not done:
         msg = client.recv(1024).decode('utf-8')
@@ -60,6 +71,18 @@ def client_server_flow():
 def kill_and_bind(port_to_attempt):
     subprocess.run(["bash", "kill.sh", str(port_to_attempt)])
     server.bind((ipv4_address, port_to_attempt))
+    bound_port = port_to_attempt
+
+    # Broadcast the IP and port of the server
+    def broadcast_for_new_clients():
+        while not done:
+            message = f"Server IP address: {ipv4_address}, Port: {bound_port}"
+            server_broadcast_socket.sendto(message.encode(), ("<broadcast>", broadcast_port))
+            time.sleep(5)
+
+    broadcast_thread = threading.Thread(target=broadcast_for_new_clients)
+    broadcast_thread.start()
+
     print("Running server on port", port_to_attempt, "!")
     print("IP: ", ipv4_address, "  Port: ", port_to_attempt)
 
@@ -87,3 +110,8 @@ if not bound:
             pass
 else:
     client_server_flow()
+
+
+    
+
+    

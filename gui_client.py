@@ -8,6 +8,16 @@ import sys
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+# We use a UDP socket to receive the IP and port of the server
+client_receive_broadcast_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+client_receive_broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+broadcast_port = 64667
+client_receive_broadcast_socket.bind(("", broadcast_port))
+data, address = client_receive_broadcast_socket.recvfrom(1024)
+message = data.decode()
+server_ip_address = message.split(",")[0].split(":")[1].strip()
+server_port = int(message.split(",")[1].split(":")[1].strip())
+
 
 closing = False
 
@@ -21,25 +31,26 @@ def populate_text(data, text):
 
 
 def submit(event=None):
-    server_ip = str(ip_input.get())
+    try:
+        client.connect((server_ip_address, server_port))
+    except:
 
-    ports = helper.known_ports()
+        label_ip_input = tk.Label(root, text="IP:", justify="center", anchor="center")
+        label_ip_input.pack()
 
-    connected = False
-    for port in ports:
-        try:
-            client.connect((server_ip, port))
-            result_label.config(text="IP: " + server_ip + "\nPort: " + str(port))
-            connected = True
-        except:
-            pass
+        ip_input = tk.Entry(root, width=20, justify="center")
+        ip_input.pack()
 
-    if not connected:
         label_port_input = tk.Label(root, text="Port:", justify="center", anchor="center")
         label_port_input.pack()
 
         port_input = tk.Entry(root, width=20, justify="center")
         port_input.pack()
+
+        server_ip = str(ip_input.get())
+        port = int(port_input.get())
+
+        connected = False
 
         try:
             port = int(port_input.get())
@@ -53,11 +64,12 @@ def submit(event=None):
 
         result_label.config(text="IP: " + server_ip + "\nPort: " + str(port))
 
-    if not connected:
-        pass
+        if not connected:
+            pass
 
-    label_ip_input.destroy()
-    ip_input.destroy()
+        label_ip_input.destroy()
+        ip_input.destroy()
+
     text_devices.destroy()  
     submit_button.destroy()
 
@@ -123,21 +135,16 @@ def submit(event=None):
 root = tk.Tk()
 root.title("Chat Client")
 
-label_text_devices = tk.Label(root, text="IPs of devices on the network:", justify="center", anchor="center")
+label_text_devices = tk.Label(root, text="Devices on the network: ", justify="center", anchor="center")
 label_text_devices.pack()
-text_devices = tk.Text(root, width=20, height=6, state="disabled")
+text_devices = tk.Text(root, width=30, height=6, state="disabled")
 text_devices.pack()
 
-label_ip_input = tk.Label(root, text="IP:", justify="center", anchor="center")
-label_ip_input.pack()
 
-ip_input = tk.Entry(root, width=20, justify="center")
-ip_input.pack()
 
 submit_button = tk.Button(root, text="Connect", command=submit)
 submit_button.pack()
 
-ip_input.bind("<Return>", submit)
 
 result_label = tk.Label(root, text="")
 result_label.pack()
@@ -154,8 +161,17 @@ def find_devices():
     populate_text(message_devices, text_devices)
     sys.exit()
 
-find_devices_thread = threading.Thread(target=find_devices)
-find_devices_thread.start()
+# ********* NOT USING THIS FOR NOW *********
+# find_devices_thread = threading.Thread(target=find_devices)
+# find_devices_thread.start()
+
+# Display IP and port that server broadcasted
+def display_received_broadcast():
+    populate_text("IP: " + str(server_ip_address) + "  Port: " + str(server_port), text_devices )
+    sys.exit()
+
+display_received_broadcast_thread = threading.Thread(target=display_received_broadcast)
+display_received_broadcast_thread.start()
 
 def on_closing():
     closing = True
