@@ -96,6 +96,7 @@ def submit(event=None):
     input_message_to_send = tk.Entry(root, width=35)
     input_message_to_send.pack()
     
+    ### RSA ###
     # send public key to server
     pubkey, privkey = rsa.generate(10)
     client.send(str(pubkey).encode('utf-8'))
@@ -109,6 +110,13 @@ def submit(event=None):
     test_msg = eval(client.recv(1024).decode('utf-8'))
     test_msg = rsa.decrypt(test_msg, privkey)
     client.send(str(test_msg).encode('utf-8'))
+
+    if client.recv(1024).decode('utf-8') == "ENC_TRUE":
+        populate_text("Using RSA encryption\n", text_box)
+        enc = True
+    else:
+        populate_text("Unable to use RSA encryption. Unencrypted messages will be sent\n", text_box)
+        enc = False
 
     # handle incoming messages from the server
     def receive_message():

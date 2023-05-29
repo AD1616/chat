@@ -58,12 +58,11 @@ def client_server_flow():
     print("Encrypted message sent to client")
     
     if client.recv(1024).decode('utf-8') == test_msg:
-        print("Encryption verified")
+        client.send("ENC_TRUE".encode('utf-8'))
+        enc = True
     else:
-        print("Encryption could not be verified. Closing connection.")
-        client.close()
-        server.close()
-        return
+        client.send("ENC_FALSE".encode('utf-8'))
+        enc = False
 
     done = False
 
