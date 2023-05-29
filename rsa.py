@@ -59,12 +59,12 @@ def generate(n): # bit size
   return (e, N), (d, N) # public, private pairs
 
 # TODO: make it by blocks < N not character
-def encrypt(msg, pubkey):
+def encrypt(msg: str, pubkey: tuple):
   e, N = pubkey
   m = [pow(ord(c), e, N) for c in msg] # convert to ascii and encrypt each char
   return m
 
-def decrypt(m, privkey):
+def decrypt(m: list, privkey: tuple):
   d, N = privkey
   msg = [chr(pow(c, d, N)) for c in m]
   return ''.join(msg)

@@ -106,8 +106,9 @@ def submit(event=None):
     populate_text("Server public key: " + str(server_pubkey) + "\n", text_box)
 
     # ******* TEST DECRYPTION ******* 
-    # test_msg = rsa.decrypt(client.recv(1024), privkey)
-    # client.send(rsa.encrypt(str(test_msg), server_pubkey))
+    test_msg = eval(client.recv(1024).decode('utf-8'))
+    test_msg = rsa.decrypt(test_msg, privkey)
+    client.send(str(test_msg).encode('utf-8'))
 
     # handle incoming messages from the server
     def receive_message():

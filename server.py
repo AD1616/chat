@@ -51,11 +51,15 @@ def client_server_flow():
     print("Public key sent to client")
 
     # test encryption
-    test_msg = "asflsdjfls"
+    # 1. server sends encrypted message to client
+    # 2. client decrypts message and sends it back to server
+    test_msg = "Hello world"
     client.send(str(rsa.encrypt(test_msg, client_pubkey)).encode('utf-8'))
     print("Encrypted message sent to client")
     
-    if rsa.decrypt(client.recv(1024), privkey).decode('utf-8') != test_msg:
+    if client.recv(1024).decode('utf-8') == test_msg:
+        print("Encryption verified")
+    else:
         print("Encryption could not be verified. Closing connection.")
         client.close()
         server.close()
