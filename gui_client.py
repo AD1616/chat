@@ -44,7 +44,7 @@ def submit():
     populate_text("Public key sent to server\n")
     
     # receive public key from server
-    server_pubkey = eval(client.recv(1024).decode('utf-8'))
+    server_pubkey = eval(client.recv(1024).decode('utf-8')) # tuple (e, N)
     populate_text("Server public key: " + str(server_pubkey) + "\n")
 
     # test decryption and send back to server
