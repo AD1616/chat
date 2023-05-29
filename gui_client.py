@@ -103,13 +103,16 @@ def submit(event=None):
     populate_text("Public key sent to server\n", text_box)
     
     # receive public key from server
-    server_pubkey = eval(client.recv(1024).decode('utf-8'))
+    server_pubkey = client.recv(1024).decode('utf-8')
+    print(server_pubkey)
+    server_pubkey = eval(server_pubkey)
     populate_text("Server public key: " + str(server_pubkey) + "\n", text_box)
 
     # ******* TEST DECRYPTION ******* 
-    test_msg = eval(client.recv(1024).decode('utf-8'))
-    test_msg = rsa.decrypt(test_msg, privkey)
-    client.send(str(test_msg).encode('utf-8'))
+    test_msg = client.recv(1024).decode('utf-8')
+    test_msg_dec = rsa.decrypt(eval(test_msg), privkey)
+    print("Test message: " + test_msg_dec)
+    client.send(test_msg_dec.encode('utf-8'))
 
     if client.recv(1024).decode('utf-8') == "ENC_TRUE":
         populate_text("Using RSA encryption\n", text_box)
@@ -123,6 +126,8 @@ def submit(event=None):
         while not closing:
             # decoded message
             incoming_message = client.recv(1024).decode('utf-8')
+            if enc:
+                incoming_message = rsa.decrypt(eval(incoming_message), privkey)
             # enabling textbox for client input
             input_message_to_send.config(state="normal")
             input_message_to_send.pack()
@@ -140,6 +145,8 @@ def submit(event=None):
         if data != "":
             populate_text("[Me]" + data + "\n", text_box)
             input_message_to_send.delete(0, tk.END)
+            if enc:
+                data = str(rsa.encrypt(data, server_pubkey))
             client.send(data.encode('utf-8'))
             # disable input box while waiting for
             # reply from server

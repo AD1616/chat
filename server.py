@@ -49,13 +49,15 @@ def client_server_flow():
     pubkey, privkey = rsa.generate(10)
     client.send(str(pubkey).encode('utf-8'))
     print("Public key sent to client")
+    time.sleep(1)
 
     # test encryption
     # 1. server sends encrypted message to client
     # 2. client decrypts message and sends it back to server
     test_msg = "Hello world"
-    client.send(str(rsa.encrypt(test_msg, client_pubkey)).encode('utf-8'))
-    print("Encrypted message sent to client")
+    test_msg_enc = str(rsa.encrypt(test_msg, client_pubkey))
+    client.send(test_msg_enc.encode('utf-8'))
+    # print("Encrypted message sent to client")
     
     if client.recv(1024).decode('utf-8') == test_msg:
         client.send("ENC_TRUE".encode('utf-8'))
@@ -69,12 +71,18 @@ def client_server_flow():
     # receive and send messages
     while not done:
         msg = client.recv(1024).decode('utf-8')
+        if enc:
+            msg = rsa.decrypt(eval(msg), privkey)
         if msg == 'quit' or msg == '':
             done = True
             sys.exit()
         else:
             print("[Client]", msg)
-        client.send(input("[Me] ").encode('utf-8'))
+
+        input_msg = input("[Me] ")
+        if enc:
+            input_msg = str(rsa.encrypt(input_msg, client_pubkey))
+        client.send(input_msg.encode('utf-8'))
 
     client.close()
     server.close()
