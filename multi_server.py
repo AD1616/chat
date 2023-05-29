@@ -3,7 +3,6 @@ import subprocess
 import time
 import helper
 import os
-import rsa
 import threading
 import sys
 
@@ -34,47 +33,59 @@ ports = helper.known_ports()
 print("Attempting commonly open ports... ")
 bound = False
 
+clients = []
+nicknames = []
+
+# Sending Messages To All Connected Clients
+def broadcast(message):
+    for client in clients:
+        client.send(message)
+
+
 # controls communication between client and server
 def client_server_flow():
-    global done
     server.listen()
 
-    client, addr = server.accept()
-    
-    # receive public key from client
-    client_pubkey = eval(client.recv(1024).decode('utf-8')) # back to tuple
-    print("Client public key: ", client_pubkey)
-    
-    # send public key to client
-    pubkey, privkey = rsa.generate(10)
-    client.send(str(pubkey).encode('utf-8'))
-    print("Public key sent to client")
+    # Handling Messages From Clients
+    def handle(client):
+        while True:
+            try:
+                # Broadcasting Messages
+                message = client.recv(1024)
+                broadcast(message)
+            except:
+                # Removing And Closing Clients
+                index = clients.index(client)
+                clients.remove(client)
+                client.close()
+                nickname = nicknames[index]
+                broadcast('{} left!'.format(nickname).encode('utf-8'))
+                nicknames.remove(nickname)
+                break
 
-    # test encryption
-    test_msg = "asflsdjfls"
-    client.send(str(rsa.encrypt(test_msg, client_pubkey)).encode('utf-8'))
-    print("Encrypted message sent to client")
-    
-    if rsa.decrypt(client.recv(1024), privkey).decode('utf-8') != test_msg:
-        print("Encryption could not be verified. Closing connection.")
-        client.close()
-        server.close()
-        return
+    def receive():
+        while True:
+            # Accept Connection
+            client, address = server.accept()
+            print("Connected with {}".format(str(address)))
 
-    done = False
+            # Request And Store Nickname
+            client.send('NICK'.encode('utf-8'))
+            nickname = client.recv(1024).decode('utf-8')
+            nicknames.append(nickname)
+            clients.append(client)
 
-    # receive and send messages
-    while not done:
-        msg = client.recv(1024).decode('utf-8')
-        if msg == 'quit' or msg == '':
-            done = True
-            sys.exit()
-        else:
-            print("[Client]", msg)
-        client.send(input("[Me] ").encode('utf-8'))
+            # Print And Broadcast Nickname
+            print("Nickname is {}".format(nickname))
+            broadcast("{} joined! ".format(nickname).encode('utf-8'))
+            client.send('Connected to server!'.encode('utf-8'))
 
-    client.close()
-    server.close()
+            # Start Handling Thread For Client
+            thread = threading.Thread(target=handle, args=(client,))
+            thread.start()
+
+    receive()
+
 
 # Broadcast the IP and port of the server
 def broadcast_for_new_clients(ip, port):
@@ -84,6 +95,7 @@ def broadcast_for_new_clients(ip, port):
         server_broadcast_socket.sendto(message.encode(), ("<broadcast>", broadcast_port))
         time.sleep(5)
     sys.exit()
+
 
 # Kill any processes that are using the port we want to use
 # and bind the server to the port
@@ -98,6 +110,7 @@ def kill_and_bind(port_to_attempt):
     print("Running server on port", port_to_attempt, "!")
     print("IP: ", ipv4_address, "  Port: ", port_to_attempt)
 
+
 # try to bind to any of the ports we know are generally free
 for port in ports:
     try:
@@ -108,7 +121,7 @@ for port in ports:
     except Exception as e:
         pass
 
-# if not, do something a bit more malicious and 
+# if not, do something a bit more malicious and
 # try to bind to any port that is in use but can be killed
 # at user discretion
 if not bound:
@@ -127,6 +140,5 @@ else:
     client_server_flow()
 
 
-    
 
-    
+

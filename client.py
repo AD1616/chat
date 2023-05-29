@@ -3,10 +3,24 @@ import helper
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-serverIP = str(input("Server IP: "))
-port = int(input("Port: "))
+client_ip = helper.get_non_loopback_ip()
+devices = helper.find_devices_on_network(client_ip)
+print("IPs on this network:" , devices)
+ports = helper.known_ports()
 
-client.connect((serverIP, port))
+server_ip = str(input("Server IP: "))
+
+connected = False
+for port in ports:
+    try:
+        client.connect((server_ip, port))
+        connected = True
+    except:
+        pass
+
+if not connected:
+    port = int(input("Port: "))
+    client.connect((server_ip, port))
 
 done = False
 

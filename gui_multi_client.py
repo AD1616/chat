@@ -13,14 +13,15 @@ client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_receive_broadcast_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 client_receive_broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 broadcast_port = 64667
-
-server_ip_address = "0.0.0.0"
-server_port = 0
-
-server_ips = []
-server_ports = []
+client_receive_broadcast_socket.bind(("", broadcast_port))
+data, address = client_receive_broadcast_socket.recvfrom(1024)
+message = data.decode()
+server_ip_address = message.split(",")[0].split(":")[1].strip()
+server_port = int(message.split(",")[1].split(":")[1].strip())
 
 closing = False
+nickname = ""
+
 
 # update the textbox content while keeping it
 # in a disabled state for the user
@@ -30,58 +31,53 @@ def populate_text(data, text):
     text.see(tk.END)
     text.config(state="disabled")
 
-# Display IP and port that server broadcasted
-def display_received_broadcast():
-    global server_ip_address
-    global server_port
-    client_receive_broadcast_socket.bind(("", broadcast_port))
-    while True:
-        data, address = client_receive_broadcast_socket.recvfrom(1024)
-        message = data.decode()
-        server_ip_address = message.split(",")[0].split(":")[1].strip()
-        server_port = int(message.split(",")[1].split(":")[1].strip())
-        flag = False
-        for i in range(len(server_ips)):
-            if server_ip_address == server_ips[i] and server_port == server_ports[i]:
-                flag = True
-        if not flag:
-            populate_text("IP: " + str(server_ip_address) + "  Port: " + str(server_port) + "\n", text_devices)
-            server_ips.append(server_ip_address)
-            server_ports.append(server_port)
-
-
-# threading to improve startup time
-display_received_broadcast_thread = threading.Thread(target=display_received_broadcast)
-display_received_broadcast_thread.start()
-
 
 # flow after connection is established
 def submit(event=None):
-    server_ip = str(ip_input.get())
-    port = int(port_input.get())
+    global nickname
+    nickname = str(nickname_input.get())
 
-    connected = False
-
+    # try to connect to broadcasted IP and port
     try:
-        client.connect((server_ip, port))
-        connected = True
+        client.connect((server_ip_address, server_port))
+    # otherwise, setup UI to allow user to enter IP and port
     except:
-        pass
+        label_ip_input = tk.Label(root, text="IP:", justify="center", anchor="center")
+        label_ip_input.pack()
 
-    label_port_input.destroy()
-    port_input.destroy()
+        ip_input = tk.Entry(root, width=20, justify="center")
+        ip_input.pack()
 
-    result_label.config(text="IP: " + server_ip + "\nPort: " + str(port))
+        label_port_input = tk.Label(root, text="Port:", justify="center", anchor="center")
+        label_port_input.pack()
 
-    if not connected:
-        pass
+        port_input = tk.Entry(root, width=20, justify="center")
+        port_input.pack()
 
-    label_ip_input.destroy()
-    ip_input.destroy()
+        server_ip = str(ip_input.get())
+        port = int(port_input.get())
 
-    label_text_devices.destroy()
+        connected = False
 
-    text_devices.destroy()  
+        try:
+            port = int(port_input.get())
+            client.connect((server_ip, port))
+            connected = True
+        except:
+            pass
+
+        label_port_input.destroy()
+        port_input.destroy()
+
+        result_label.config(text="IP: " + server_ip + "\nPort: " + str(port))
+
+        if not connected:
+            pass
+
+        label_ip_input.destroy()
+        ip_input.destroy()
+
+    text_devices.destroy()
     submit_button.destroy()
 
     text_box = tk.Text(root, width=50, height=10, state="disabled", highlightcolor="red", highlightthickness=2)
@@ -95,17 +91,17 @@ def submit(event=None):
 
     input_message_to_send = tk.Entry(root, width=35)
     input_message_to_send.pack()
-    
-    # send public key to server
-    pubkey, privkey = rsa.generate(10)
-    client.send(str(pubkey).encode('utf-8'))
-    populate_text("Public key sent to server\n", text_box)
-    
-    # receive public key from server
-    server_pubkey = eval(client.recv(1024).decode('utf-8'))
-    populate_text("Server public key: " + str(server_pubkey) + "\n", text_box)
 
-    # ******* TEST DECRYPTION ******* 
+    # ********** send public key to server *********
+    # pubkey, privkey = rsa.generate(10)
+    # client.send(str(pubkey).encode('utf-8'))
+    # populate_text("Public key sent to server\n", text_box)
+
+    # *********** receive public key from server **********
+    # server_pubkey = eval(client.recv(1024).decode('utf-8'))
+    # populate_text("Server public key: " + str(server_pubkey) + "\n", text_box)
+
+    # ******* TEST DECRYPTION *******
     # test_msg = rsa.decrypt(client.recv(1024), privkey)
     # client.send(rsa.encrypt(str(test_msg), server_pubkey))
 
@@ -122,14 +118,16 @@ def submit(event=None):
             if incoming_message == 'quit' or '':
                 client.close()
                 break
+            if incoming_message == 'NICK':
+                client.send(nickname.encode('utf-8'))
             else:
-                populate_text("[Server]" + incoming_message + "\n", text_box)
+                populate_text(incoming_message + "\n", text_box)
 
     # handle sending messages to the server
     def send_message(event=None):
         data = input_message_to_send.get()
         if data != "":
-            populate_text("[Me]" + data + "\n", text_box)
+            populate_text(nickname + ": " + data + "\n", text_box)
             input_message_to_send.delete(0, tk.END)
             client.send(data.encode('utf-8'))
             # disable input box while waiting for
@@ -143,6 +141,7 @@ def submit(event=None):
     receive_thread = threading.Thread(target=receive_message)
     receive_thread.start()
 
+
 # Create a Tkinter window
 root = tk.Tk()
 root.title("Chat Client")
@@ -152,23 +151,14 @@ label_text_devices.pack()
 text_devices = tk.Text(root, width=30, height=6, state="disabled")
 text_devices.pack()
 
-label_ip_input = tk.Label(root, text="IP:", justify="center", anchor="center")
-label_ip_input.pack()
+label_nickname = tk.Label(root, text="Nickname:", justify="center", anchor="center")
+label_nickname.pack()
 
-ip_input = tk.Entry(root, width=20, justify="center")
-ip_input.pack()
-
-label_port_input = tk.Label(root, text="Port:", justify="center", anchor="center")
-label_port_input.pack()
-
-port_input = tk.Entry(root, width=20, justify="center")
-port_input.pack()
-
-
+nickname_input = tk.Entry(root, width=20, justify="center")
+nickname_input.pack()
 
 submit_button = tk.Button(root, text="Connect", command=submit)
 submit_button.pack()
-
 
 result_label = tk.Label(root, text="")
 result_label.pack()
@@ -186,11 +176,21 @@ def find_devices():
     populate_text(message_devices, text_devices)
     sys.exit()
 
+
 # ********* NOT USING THIS FOR NOW *********
 # find_devices_thread = threading.Thread(target=find_devices)
 # find_devices_thread.start()
 
 
+# Display IP and port that server broadcasted
+def display_received_broadcast():
+    populate_text("IP: " + str(server_ip_address) + "  Port: " + str(server_port), text_devices)
+    sys.exit()
+
+
+# threading to improve startup time
+display_received_broadcast_thread = threading.Thread(target=display_received_broadcast)
+display_received_broadcast_thread.start()
 
 
 # handle closing of the window
