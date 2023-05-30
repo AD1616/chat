@@ -156,8 +156,8 @@ def submit(event=None):
     def send_message(event=None):
         data = input_message_to_send.get()
         msg = "[" + nickname + "] " + data
-        if enc:
-            msg = str(rsa.encrypt(data, server_pubkey))
+        # if enc:
+        #     msg = str(rsa.encrypt(data, server_pubkey))
         if data != "":
             input_message_to_send.delete(0, tk.END)
             client.send(msg.encode('utf-8'))

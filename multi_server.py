@@ -59,8 +59,8 @@ def client_server_flow():
             try:
                 # Broadcasting Messages
                 message = client.recv(1024)
-                if enc:
-                    message = rsa.decrypt(eval(message), privkey)
+                # if enc:
+                #     message = rsa.decrypt(eval(message), privkey)
                 broadcast(message)
             except:
                 # Removing And Closing Clients
