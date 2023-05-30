@@ -38,14 +38,15 @@ def display_received_broadcast():
     while True:
         data, address = client_receive_broadcast_socket.recvfrom(1024)
         message = data.decode()
-        server_ip_address = message.split(",")[0].split(":")[1].strip()
-        server_port = int(message.split(",")[1].split(":")[1].strip())
+        name = message.split(",")[0].split(":")[1].strip()
+        server_ip_address = message.split(",")[1].split(":")[1].strip()
+        server_port = int(message.split(",")[2].split(":")[1].strip())
         flag = False
         for i in range(len(server_ips)):
             if server_ip_address == server_ips[i] and server_port == server_ports[i]:
                 flag = True
         if not flag:
-            populate_text("IP: " + str(server_ip_address) + "  Port: " + str(server_port) + "\n", text_devices)
+            populate_text(name + " | " + "IP: " + str(server_ip_address) + "  Port: " + str(server_port) + "\n", text_devices)
             server_ips.append(server_ip_address)
             server_ports.append(server_port)
 
@@ -165,7 +166,7 @@ root.title("Chat Client")
 
 label_text_devices = tk.Label(root, text="Devices on the network: ", justify="center", anchor="center")
 label_text_devices.pack()
-text_devices = tk.Text(root, width=30, height=6, state="disabled")
+text_devices = tk.Text(root, width=50, height=6, state="disabled")
 text_devices.pack()
 
 label_ip_input = tk.Label(root, text="IP:", justify="center", anchor="center")

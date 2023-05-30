@@ -88,10 +88,10 @@ def client_server_flow():
     server.close()
 
 # Broadcast the IP and port of the server
-def broadcast_for_new_clients(ip, port):
+def broadcast_for_new_clients(name, ip, port):
     global done
     while not done:
-        message = f"Server IP address: {ip}, Port: {port}"
+        message = f"Name: {name}, Server IP address: {ip}, Port: {port}"
         server_broadcast_socket.sendto(message.encode(), ("<broadcast>", broadcast_port))
         time.sleep(5)
     sys.exit()
@@ -103,7 +103,8 @@ def kill_and_bind(port_to_attempt):
     subprocess.run(["bash", "kill.sh", str(port_to_attempt)])
     server.bind((ipv4_address, port_to_attempt))
     bound_port = port_to_attempt
-    broadcast_thread = threading.Thread(target=broadcast_for_new_clients, args=(ipv4_address, bound_port))
+    room_name = str(input("Enter a name for the chat room: "))
+    broadcast_thread = threading.Thread(target=broadcast_for_new_clients, args=(room_name, ipv4_address, bound_port))
     broadcast_thread.start()
 
     print("Running server on port", port_to_attempt, "!")
