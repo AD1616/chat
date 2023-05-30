@@ -5,6 +5,7 @@ import helper
 import os
 import threading
 import sys
+import rsa
 
 # AF_INET defines the socket to be for internet communication
 # (as opposed to bluetooth or something)
@@ -26,6 +27,7 @@ bound_port = 0
 # global variable to indicate when the connection is complete
 done = False
 
+
 ipv4_address = helper.get_non_loopback_ip()
 print("IP Address: ", ipv4_address)
 
@@ -35,6 +37,11 @@ bound = False
 
 clients = []
 nicknames = []
+
+global pubkey, privkey
+
+enc = False
+
 
 # Sending Messages To All Connected Clients
 def broadcast(message):
@@ -52,6 +59,8 @@ def client_server_flow():
             try:
                 # Broadcasting Messages
                 message = client.recv(1024)
+                if enc:
+                    message = rsa.decrypt(eval(message), privkey)
                 broadcast(message)
             except:
                 # Removing And Closing Clients
@@ -64,9 +73,11 @@ def client_server_flow():
                 break
 
     def receive():
+        global pubkey, privkey, enc
         while True:
             # Accept Connection
             client, address = server.accept()
+
             print("Connected with {}".format(str(address)))
 
             # Request And Store Nickname
@@ -77,8 +88,39 @@ def client_server_flow():
 
             # Print And Broadcast Nickname
             print("Nickname is {}".format(nickname))
+
+            # ********** RSA **********
+            client.send('RSA'.encode('utf-8'))
+
+            client_pubkey = eval(client.recv(1024).decode('utf-8'))  # back to tuple
+            print("Client public key: ", client_pubkey)
+
+            # send public key to client
+            pubkey, privkey = rsa.generate(10)
+            client.send(str(pubkey).encode('utf-8'))
+            print("Public key sent to client")
+            time.sleep(1)
+
+            # test encryption
+            # 1. server sends encrypted message to client
+            # 2. client decrypts message and sends it back to server
+            test_msg = "Hello world"
+            test_msg_enc = str(rsa.encrypt(test_msg, client_pubkey))
+            client.send(test_msg_enc.encode('utf-8'))
+            # print("Encrypted message sent to client")
+
+            received_test_dec = client.recv(1024).decode('utf-8')
+            print(received_test_dec)
+            if received_test_dec == test_msg:
+                client.send("ENC_TRUE".encode('utf-8'))
+                enc = True
+            else:
+                client.send("ENC_FALSE".encode('utf-8'))
+                enc = False
+
+            received_status = client.recv(1024).decode('utf-8')
+            print(received_status)
             broadcast("{} joined! ".format(nickname).encode('utf-8'))
-            client.send('Connected to server!'.encode('utf-8'))
 
             # Start Handling Thread For Client
             thread = threading.Thread(target=handle, args=(client,))
@@ -88,10 +130,10 @@ def client_server_flow():
 
 
 # Broadcast the IP and port of the server
-def broadcast_for_new_clients(ip, port):
+def broadcast_for_new_clients(name, ip, port):
     global done
     while not done:
-        message = f"Server IP address: {ip}, Port: {port}"
+        message = f"Name: {name}, Server IP address: {ip}, Port: {port}"
         server_broadcast_socket.sendto(message.encode(), ("<broadcast>", broadcast_port))
         time.sleep(5)
     sys.exit()
@@ -104,7 +146,8 @@ def kill_and_bind(port_to_attempt):
     subprocess.run(["bash", "kill.sh", str(port_to_attempt)])
     server.bind((ipv4_address, port_to_attempt))
     bound_port = port_to_attempt
-    broadcast_thread = threading.Thread(target=broadcast_for_new_clients, args=(ipv4_address, bound_port))
+    room_name = str(input("Enter a name for the chat room: "))
+    broadcast_thread = threading.Thread(target=broadcast_for_new_clients, args=(room_name, ipv4_address, bound_port))
     broadcast_thread.start()
 
     print("Running server on port", port_to_attempt, "!")

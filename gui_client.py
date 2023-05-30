@@ -190,24 +190,23 @@ submit_button.pack()
 result_label = tk.Label(root, text="")
 result_label.pack()
 
-client_ip = helper.get_non_loopback_ip()
-
-
-# Find all IP addresses on the network
-def find_devices():
-    devices_on_network = helper.find_devices_on_network(client_ip)
-    message_devices = ""
-    for ip in devices_on_network:
-        message_devices += ip
-        message_devices += "\n"
-    populate_text(message_devices, text_devices)
-    sys.exit()
-
 # ********* NOT USING THIS FOR NOW *********
+
+# client_ip = helper.get_non_loopback_ip()
+#
+#
+# # Find all IP addresses on the network
+# def find_devices():
+#     devices_on_network = helper.find_devices_on_network(client_ip)
+#     message_devices = ""
+#     for ip in devices_on_network:
+#         message_devices += ip
+#         message_devices += "\n"
+#     populate_text(message_devices, text_devices)
+#     sys.exit()
+
 # find_devices_thread = threading.Thread(target=find_devices)
 # find_devices_thread.start()
-
-
 
 
 # handle closing of the window
