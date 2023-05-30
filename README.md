@@ -6,7 +6,7 @@ The goal of this project is for two computers to be able to communicate using th
 
 The TCP/IP protocol is used for messaging between the client and server. The UDP protocol is used for device discovery, allowing a server to communicate its IP and port to a client without a previously established connection.
 
-### Installation
+## Installation
 ```shell
 git clone https://github.com/AD1616/chat.git
 ```
@@ -18,15 +18,30 @@ cd chat
 ```shell
 pip install -r requirements.txt
 ```
+## One Client
+
 ### Start Server
 
 ```shell
 python server.py
 ```
-The program needs to find an established port to mount the server on. You will be asked to terminate a process to allow this.
 
 ### Start GUI Client
 
 ```shell
 python gui_client.py
+```
+
+## Multiple Clients
+
+### Start Server
+
+```shell
+python multi_server.py
+```
+
+### Start GUI Client
+
+```shell
+python gui_multi_client.py
 ```
