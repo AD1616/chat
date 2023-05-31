@@ -58,10 +58,11 @@ def client_server_flow():
         while True:
             try:
                 # Broadcasting Messages
-                message = client.recv(1024)
-                # if enc:
-                #     message = rsa.decrypt(eval(message), privkey)
-                broadcast(message)
+                message = client.recv(1024).decode('utf-8')
+                if enc:
+                    message = rsa.decrypt(eval(message), privkey)
+                    # print("Decrypted message: ", message)
+                broadcast(message.encode('utf-8'))
             except:
                 # Removing And Closing Clients
                 index = clients.index(client)
@@ -181,7 +182,3 @@ if not bound:
             pass
 else:
     client_server_flow()
-
-
-
-
