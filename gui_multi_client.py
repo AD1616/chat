@@ -17,8 +17,7 @@ broadcast_port = 64667
 server_ip_address = "0.0.0.0"
 server_port = 0
 
-server_ips = []
-server_ports = []
+server_info = {}
 
 closing = False
 nickname = ""
@@ -50,13 +49,12 @@ def display_received_broadcast():
         server_ip_address = message.split(",")[1].split(":")[1].strip()
         server_port = int(message.split(",")[2].split(":")[1].strip())
         flag = False
-        for i in range(len(server_ips)):
-            if server_ip_address == server_ips[i] and server_port == server_ports[i]:
-                flag = True
+        if name in server_info:
+            flag = True
         if not flag:
             populate_text(name + " | " + "IP: " + str(server_ip_address) + "  Port: " + str(server_port) + "\n", text_devices)
-            server_ips.append(server_ip_address)
-            server_ports.append(server_port)
+            # create dictionary of server info
+            server_info[name] = [server_ip_address, server_port]
 
 
 # threading to improve startup time
@@ -68,8 +66,9 @@ display_received_broadcast_thread.start()
 def submit(event=None):
     global nickname
     nickname = str(nickname_input.get())
-    server_ip = str(ip_input.get())
-    port = int(port_input.get())
+    name = str(room_input.get())
+    server_ip = server_info[name][0]
+    port = server_info[name][1]
 
     connected = False
 
@@ -77,18 +76,15 @@ def submit(event=None):
         client.connect((server_ip, port))
         connected = True
     except:
-        pass
-
-    label_port_input.destroy()
-    port_input.destroy()
+        pass 
 
     result_label.config(text="IP: " + server_ip + "\nPort: " + str(port))
 
     if not connected:
         pass
 
-    label_ip_input.destroy()
-    ip_input.destroy()
+    label_room_input.destroy()
+    room_input.destroy()
 
     label_text_devices.destroy()
 
@@ -184,22 +180,26 @@ label_nickname_input.pack()
 nickname_input = tk.Entry(root, width=20, justify="center")
 nickname_input.pack()
 
-label_ip_input = tk.Label(root, text="IP:", justify="center", anchor="center")
-label_ip_input.pack()
+# label_ip_input = tk.Label(root, text="IP:", justify="center", anchor="center")
+# label_ip_input.pack()
 
-ip_input = tk.Entry(root, width=20, justify="center")
-ip_input.pack()
+# ip_input = tk.Entry(root, width=20, justify="center")
+# ip_input.pack()
 
-label_port_input = tk.Label(root, text="Port:", justify="center", anchor="center")
-label_port_input.pack()
+# label_port_input = tk.Label(root, text="Port:", justify="center", anchor="center")
+# label_port_input.pack()
 
-port_input = tk.Entry(root, width=20, justify="center")
-port_input.pack()
+# port_input = tk.Entry(root, width=20, justify="center")
+# port_input.pack()
 
+label_room_input = tk.Label(root, text="Chat room:", justify="center", anchor="center")
+label_room_input.pack()
+
+room_input = tk.Entry(root, width=20, justify="center")
+room_input.pack()
 
 submit_button = tk.Button(root, text="Connect", command=submit)
 submit_button.pack()
-
 
 result_label = tk.Label(root, text="")
 result_label.pack()
