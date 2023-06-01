@@ -40,9 +40,6 @@ nicknames = []
 
 global pubkey, privkey
 
-enc = False
-
-
 # Sending Messages To All Connected Clients
 def broadcast(message):
     for client in clients:
@@ -54,7 +51,7 @@ def client_server_flow():
     server.listen()
 
     # Handling Messages From Clients
-    def handle(client):
+    def handle(client, enc):
         while True:
             try:
                 # Broadcasting Messages
@@ -74,7 +71,7 @@ def client_server_flow():
                 break
 
     def receive():
-        global pubkey, privkey, enc
+        global pubkey, privkey
         while True:
             # Accept Connection
             client, address = server.accept()
@@ -124,7 +121,7 @@ def client_server_flow():
             broadcast("{} joined! ".format(nickname).encode('utf-8'))
 
             # Start Handling Thread For Client
-            thread = threading.Thread(target=handle, args=(client,))
+            thread = threading.Thread(target=handle, args=(client, enc))
             thread.start()
 
     receive()
