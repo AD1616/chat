@@ -39,6 +39,7 @@ clients = []
 nicknames = []
 
 global pubkey, privkey
+pubkey, privkey = rsa.generate(10)
 
 # Sending Messages To All Connected Clients
 def broadcast(message):
@@ -95,7 +96,6 @@ def client_server_flow():
             print("Client public key: ", client_pubkey)
 
             # send public key to client
-            pubkey, privkey = rsa.generate(10)
             client.send(str(pubkey).encode('utf-8'))
             print("Public key sent to client")
             time.sleep(1)
