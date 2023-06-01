@@ -58,7 +58,7 @@ def client_server_flow():
                 message = client.recv(1024).decode('utf-8')
                 if enc:
                     message = rsa.decrypt(eval(message), privkey)
-                    # print("Decrypted message: ", message)
+                    print("Decrypted message: ", message)
                 broadcast(message.encode('utf-8'))
             except:
                 # Removing And Closing Clients
@@ -72,6 +72,7 @@ def client_server_flow():
 
     def receive():
         global pubkey, privkey
+        enc = False
         while True:
             # Accept Connection
             client, address = server.accept()
