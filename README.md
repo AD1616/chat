@@ -1,6 +1,6 @@
 # Chat
 
-The goal of this project is to develop a chat service for communicatation using the TCP/IP and UDP protocols.
+The goal of this project is to develop a chat service for communication using the TCP/IP and UDP protocols.
 
 One version allows only one client that communicates with another client hosting the server. The other version allows for multiple clients to connect to a non-client server.
 
